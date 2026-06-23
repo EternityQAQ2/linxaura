@@ -6,7 +6,7 @@ config:
     type: hero
     full: true
     backgroundImage: '/desktop.png'
-    filter: saturate(0.75) brightness(0.9)
+    filter: saturate(0.85) brightness(0.9)
     hero:
       name: Linxaura
       tagline: 犹豫和果决中前进。
