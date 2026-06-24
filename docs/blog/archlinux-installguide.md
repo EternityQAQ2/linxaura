@@ -2,8 +2,8 @@
 title: archlinux双系统安装教程
 tags:
   - arch linux
-createTime: 2026/06/23 18:35:00
-permalink: /blog/ijugetjq/g
+createTime: 2026/06/24 19:25:23
+permalink: /blog/7o0l5na8/
 ---
 详细视频教程参考：[从LinuxMint入门到ArchLinux安装详解](https://www.bilibili.com/video/BV19DBqB4EY4/)
 ## 什么是Arch linux
