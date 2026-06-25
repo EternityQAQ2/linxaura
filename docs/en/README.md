@@ -6,7 +6,7 @@ config:
     type: hero
     full: true
     backgroundImage: '/desktop.png'
-    filter: saturate(0.75) brightness(0.9)
+    filter: saturate(0.9) brightness(0.9)
     hero:
       name: Linxaura
       tagline: Forward, through hesitation and resolve.

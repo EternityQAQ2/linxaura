@@ -201,7 +201,7 @@ Device             Size    Type
 #### archinstall 步骤
 新版本`archinstall`提供了连接网络的功能。如果无法连接网络，请在`live`环境下，参考以下代码连接网络。
 ```sh
-iwtcl
+iwctl
 
 ```
 进入`iwd`环境。[3]
