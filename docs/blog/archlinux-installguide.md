@@ -270,7 +270,7 @@ station wlan0 connect “{wifi名称}” #比如我的wifi名称是hit 那便是
 
 四是`archinstall`的版本迭代快，教程容易出现未及时更新的问题。
 
-### 手动安装Arch Linux
+### 手动安装Arch Linux[2]
 回到刚进入`live`环境的情况。
 <center>
     <img style="border-radius: 0.3125em;
@@ -283,6 +283,284 @@ station wlan0 connect “{wifi名称}” #比如我的wifi名称是hit 那便是
     padding: 2px;">live环境[7]</div>
 </center>
 
+#### 一 联网
+```sh
+iwctl
+
+```
+进入`iwd`环境。[3]
+```sh
+device list 
+station wlan0 scan #w\an0为上一步得到的设备名，一般是wlan0
+station wlan0 get-networks
+station wlan0 connect “{wifi名称}” #比如我的wifi名称是hit 那便是station wlan0 connect “hit”
+```
+`ctrl+c`或者`exit`退出。
+
+#### 二 时间准确
+使用 `timedatectl` 确保系统时间同步，看是否开启NTP（网络时间协议）。如果没开请用`timedatectl set-ntp true`开启。
+
+#### 三 Reflector 自动设置镜像源[3]
+```sh
+reflector -p https -a 12 -c cn --v --sort rate --save /etc/pacman.d/mirrorlist
+pacman -Sy
+```
+
+#### 四 硬盘分区
+`lsblk -pf`或者`fdisk -l`查看分区情况。主要是识别windows分区，和准备分配给`arch linux`的系统分区。一般已经有分区的，不会是目标分区(除非是多次重装双系统的linux分区)
+```sh
+Device             Size    Type
+/dev/nvme0n1p1     260M    EFI System
+/dev/nvme0n1p2      16M    Microsoft reserved
+/dev/nvme0n1p3    262.9G   Microsoft basic data
+/dev/nvme0n1p4     940M    Windows recovery environment
+/dev/nvme0n1p5    110.9G   Microsoft basic data
+/dev/nvme0n1p6      22G    EFI System
+/dev/nvme0n1p7     200M    Windows recovery environment
+/dev/nvme0n1p8      95M    EFI System
+/dev/nvme0n1p9     79.7G   Linux root (x86-64)  #我已经建立linux分区
+```
+如果是windows刚压缩完空余(free)空间，应该是看不到分区信息。举个栗子：我在windows刚压缩完`/dev/nvme0n1`磁盘。此时的列表对比前文的，缺少`/dev/nvme0n1p8`和`/dev/nvme0n1p9`。在Windows压缩时也会显示磁盘id和windows分盘信息，通过`fdisk -l`和`lsblk -pf`可以很方便判断出分配给linux的磁盘空间。
+
+判断完分区型号后，请使用`cfdisk {硬盘盘符}`来挂载磁盘和分配linux空间。
+
+比如，`cfdisk /dev/nvme0n1`。
+<center>
+    <img style="border-radius: 0.3125em;
+    box-shadow: 0 2px 4px 0 rgba(34,36,38,.12),0 2px 10px 0 rgba(34,36,38,.08);" 
+    src="/assets/archlinux-installguide/imagecfdisk.png">
+    <br>
+    <div style="color:orange; border-bottom: 1px solid #d9d9d9;
+    display: inline-block;
+    color: #999;
+    padding: 2px;">cfdisk环境[6]</div>
+</center>
+
+如果弹出 select label type，请选择gpt。
+分区参考如下：
+
+| 挂载点 | 分区类型 | 注释 | 建议大小 |
+|--------|----------|------|----------|
+| `/efi` | EFI System | EFI 系统分区 | 100MB(空间大的分配512MB) |
+| `/` | Linux root (x86-64) | 根目录 | 设备剩余空间，大于 40 GB（官方要求至少大于 23 GB） |
+
+
+详细指导：
+1. cfdisk 要分配的磁盘。
+2. `new`-->`partition size = 100MB` -->选中创建的分区-->`type`-->改为`EFI system`。
+3. `new`-->`partition size = 剩下的所有空间` -->类型保持`linux filesystem`。
+
+问题：
+1. 为什么需要创建新的efi分区？
+答：因为如果把linux的efi引导和windows放一起，windows更新时可能会导致linux的efi引导失效（经过检验，哪怕不在一个efi分区，windows仍会影响grub对linux系统的识别）。
+2. 为什么不创建swap分区（虚拟内存）？ 答：会用zram。
+
+#### 五 格式化分区（并给分区创建文件系统）
+创建分区后，必须使用合适的文件系统对每个新创建的分区进行格式化。
+linux文件系统一般用`ext4`或者`btrfs`。`btrfs`是一种支持快照的新型文件系统。它最大的特点就是保存系统快照（类似于存档），当系统崩溃时可以方便“回档”。建议使用`btrfs`文件系统。
+```sh
+lsblk -pf #查看分区情况
+mkfs.fat -F 32 /dev/efi_system_partition #（EFI 系统分区，前文所创建）
+# 假设前文创建的分区是/dev/nvme0n1p8,则是：mkfs.fat -F 32 dev/nvme0n1p8
+#不要写错了，否则后果自负。
+mkfs.btrfs /dev/root_partition #（根分区）
+#假设前文创建的分区是/dev/nvme0n1p9,则是：mkfs.btrfs /dev/nvme0n1p9
+#不要写错了，否则后果自负。
+```
+
+#### 六 临时挂载分区
+将根磁盘卷挂载到 /mnt
+```sh
+ mount /dev/root_partition /mnt  # 根分区名称 将root_partition替换为根分区名称
+ # 比如： mount /dev/nvme0n1p9
+```
+创建两个子卷：`@` 用于根目录（`/`），`@home` 用于用户主目录（`/home`）。将二者分离，是因为 Linux 中所有用户配置和个人数据都存放在 `/home` 下，独立子卷后可以对系统和用户数据分别进行快照与回滚，互不影响。
+```sh
+btrfs subvolume create /mnt/@
+btrfs subvolume create /mnt/@home
+btrfs subvolume list /mnt #确认子卷
+umount /mnt #取消挂载
+```
+#### 七 正式挂载 安装系统
+挂载 Btrfs 子卷：
+
+```bash
+# 挂载根子卷 @ 到 /mnt
+mount -t btrfs -o subvol=/@,compress=zstd /dev/root_partition /mnt
+# 将 root_partition 替换为实际分区名，如 /dev/nvme0n1p9
+
+# 挂载 home 子卷 @home 到 /mnt/home
+mount --mkdir -t btrfs -o subvol=/@home,compress=zstd /dev/root_partition /mnt/home
+# 将 root_partition 替换为实际分区名，如 /dev/nvme0n1p9
+```
+`@` 和 `@home` 均位于同一 Btrfs 分区，通过子卷隔离根目录与用户数据，便于独立管理快照。`-o compress=zstd` 启用 zstd 透明压缩以节省空间。
+
+挂载EFI 分区（ESP）
+```bash
+mount --mkdir efi_system_partition /mnt/efi
+# 将 efi_system_partition替换为实际分区名，如 /dev/nvme0n1p8
+df -h 
+#查看挂载情况
+```
+安装系统[3]
+```bash
+# amd-ucode 是微码，用来修复和优化 CPU，Intel 用户安装 intel-ucode
+pacstrap -K /mnt base base-devel linux linux-firmware btrfs-progs networkmanager vim sudo amd-ucode nano
+# -K 初始化密钥
+# base 基本包
+# base-devel是编译其他软件的时候用的
+# linux是内核，可以更换
+# linux-firmware是固件
+# btrfs-progs是 Btrfs 文件系统的管理工具
+# networkmanager 是联网用的，是各个桌面环境标配的联网工具
+# vim 是文本编辑器，也可以换成别的，比如 nano、neovim
+# sudo 和权限管理有关
+# nano 如果不会vim用nano。nano 的基础操作只需要记住 Ctrl+F 搜索、Ctrl+S 保存和 Ctrl+X 退出即可。
+
+```
+#### 八 生成 fstab 文件
+系统启动时，会根据 `/etc/fstab` 中的配置自动挂载各分区到对应目录，无需手动执行此前的 `mount` 命令。
+```bash
+genfstab -U /mnt > /mnt/etc/fstab
+```
+
+#### 九 chroot 到新安装的系统
+接下来的步骤需要像启动到新安装的系统一样直接与其环境、工具和配置进行交互，请 chroot 到新安装的系统：
+```bash
+arch-chroot /mnt
+```
+#### 十 设置时间和时区
+```bash
+ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+hwclock --systohc #设置硬件时间
+```
+#### 十一 区域和本地化设置
+程序和库如果需要本地化文本，都依赖区域设置。
+```bash
+vim /etc/locale.gen #我用vim 所以教程以vim为主
+```
+按 `/` 进入搜索模式，输入 `en_US.UTF-8` 后回车定位到该行，按 `i` 进入插入模式，删除行首的 `#` 取消注释。再次按 `/` 进入搜索模式，输入 `zh_CN.UTF-8` 后回车定位到该行，按 `i` 进入插入模式，删除行首的 `#` 取消注释按 `Esc` 退出插入模式，输入 `:wq` 保存并退出。
+```bash
+locale-gen #生成 locale 信息
+```
+编辑设定 LANG 变量
+```bash
+vim /etc/locale.conf
+```
+`i` 键进入编辑模式；写入 `LANG=en_US.UTF-8` 设置系统语言为英文。
+
+注：locale设置成中文，可能会导致 tty 上中文显示为方块（因为 TTY 下没有 CJK 字体）。
+#### 十二 网络配置
+设个喜欢的主机名，不要太长，命名格式参考：arch+英文名称，如archlinx。
+```bash
+vim /etc/hostname
+```
+`i`进入编辑模式，输入主机名称，`esc`退出插入模式,，输入 `:wq` 保存并退出。接下来不再介绍vim的基础操作。
+
+#### 十三 设置 root 密码
+```bash
+passwd
+```
+安全建议： 生产环境应使用强密码（含大小写、数字、符号）。但个人桌面场景下，终端密码输入框大小写切换可能因响应过快而误触。若安装的是双系统且追求便利，可暂设纯数字密码，后续再改为高强度密码。
+
+#### 十四 安装引导程序
+以下以 UEFI 引导方式安装 GRUB。若你的设备使用 BIOS 引导，请参考 ArchWiki 的 GRUB 页面。
+```bash
+pacman -S grub efibootmgr os-prober exfat-utils 
+#efibootmgr 管理 UEFI 启动项；
+#os-prober 和 exfat-utils 用来搜索 Win11
+grub-install --target=x86_64-efi --efi-directory=/efi --boot-directory=/efi --bootloader-id=elan
+#安装grub
+#--efi-directory 指定 ESP 位置；
+#--boot-directory 指定 GRUB 的安装目录；
+#--bootloader-id 任意取一个启动项名字；
+```
+编辑 GRUB 的源文件
+```bash
+vim /etc/default/grub
+```
+1. `GRUB_DEFAULT=0` 改成 `=saved`，再取消 `GRUB_SAVEDEFAULT=true` 的注释。
+2. 取消最后一行 `GRUB_DISABLE_OS_PROBER=false` 的注释。(以来检测windows操作系统)
+在 GRUB 的默认安装位置创建链接
+```bash
+ln -sf /efi/grub /boot/grub
+```
+大多数程序会默认检测 /boot/grub 作为 GRUB 的安装位置，但是我们的 GRUB 在 /efi/grub，所以创建一个链接方便使用。
+
+生成 GRUB 的配置文件
+```bash
+grub-mkconfig -o /boot/grub/grub.cfg
+```
+如果一切顺利，命令输出的最后几行会显示检测到的 Linux 内核和 Windows EFI 引导项的位置。
+
+示例输出：
+```bash
+Found linux image: /boot/vmlinuz-linux-lts #某次安装我用的长期支持版本内核（lts）。
+Found initrd image: /boot/amd-ucode.img /boot/initramfs-linux-lts.img
+Found Windows Boot Manager on /dev/nvme0n1p10@/efi/Microsoft/Boot/bootmgfw.efi
+```
+
+如果这一步没有输出上述内容，**请勿重启电脑**。请按以下步骤排查：
+
+1. **重新核对系统安装流程**，检查是否有遗漏或配置错误；
+2. **查阅 [Arch Linux 安装指南](https://wiki.archlinux.org/title/Installation_guide)**，对照官方文档逐项确认；
+3. **向 AI 求助**，描述具体现象和已执行的步骤，协助定位问题。
+
+#### 十五 zram配置
+```bash
+pacman -S zram-generator
+vim /etc/systemd/zram-generator.conf
+```
+配置如下：
+```bash
+[zram0]
+zram-size = ram
+compression-algorithm = zstd
+```
+禁用 zswap
+zswap 是 Swap 的缓存。需要交换的数据在存入交换空间之前会先被 zswap 压缩后暂时放进内存里。和 ZRAM 功能重复且引入了复杂性，故禁用。[3]
+```bash
+vim /etc/default/grub
+```
+在 GRUB_CMDLINE_LINUX_DEFAULT="" 里写入 `zswap.enabled=0`。
+重新生成 GRUB 的配置文件
+```bash
+grub-mkconfig -o /boot/grub/grub.cfg
+```
+#### 十六 启动网络服务
+```bash
+systemctl enable NetworkManager
+```
+
+#### 十七 退出chroot 重启电脑
+请确保`grub-mkconfig`输出了内核信息和windows efi信息。
+```bash
+exit
+reboot
+```
+#### 十八 系统测试
+默认情况下，重启电脑后会进入配置好的`grub`界面，而不是`u盘live`环境。否则，进入`bios`调整下顺序即可。
+登录root账户。
+连网：
+```bash
+nmtui
+```
+1. 选择 activate a connection
+2. 选择自己的 wifi 进行连接
+3. esc 退出
+
+连网成功后，系统安装成功。
+最后安装点好玩的:
+```bash
+pacman -Sy
+pacman -S fastfetch
+```
+
+更详细的wiki请参考:[Arch Linux wiki](https://archlinux.org/)
+以后会写我的系统如何配置。
+
+
+---
 ## 参考文献
 1. [Deepin 论坛 - Arch Linux 安装讨论](https://bbs.deepin.org/en/post/209759)
 2. [Arch Linux 官方安装指南](https://wiki.archlinux.org/title/Installation_guide)
