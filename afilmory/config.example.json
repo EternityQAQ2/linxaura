@@ -1,0 +1,42 @@
+{
+  "name": "Innei's Afilmory",
+  "title": "Innei's Afilmory",
+  "description": "Capturing beautiful moments in life, documenting daily warmth and emotions through my lens.",
+  "url": "https://afilmory.innei.in/",
+  "accentColor": "#007bff",
+  "author": {
+    "name": "Innei",
+    "url": "https://innei.in/",
+    "avatar": "https://cdn.jsdelivr.net/gh/Innei/static@master/avatar.png"
+  },
+  "social": {
+    "github": "",
+    "twitter": ""
+  },
+  "feed": {
+    "folo": {
+      "challenge": {
+        "feedId": "",
+        "userId": ""
+      }
+    }
+  },
+  "map": [
+    "maplibre"
+  ],
+  "mapStyle": "builtin",
+  "mapProjection": "mercator",
+  "beian": {
+    "icp": {
+      "enabled": false,
+      "number": "XICP备xxxxxxxx号",
+      "link": "https://beian.miit.gov.cn/"
+    },
+    "police": {
+      "enabled": false,
+      "number": "X公网安备xxxxxxxxxxxxxx号",
+      "code": "xxxxxxxxxxxxxx",
+      "icon": "https://example.com/beian.png"
+    }
+  }
+}

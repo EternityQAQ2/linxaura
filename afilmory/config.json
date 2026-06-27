@@ -1,0 +1,42 @@
+{
+  "name": "linxaura Afilmory",
+  "title": "linxaura Afilmory",
+  "description": "Capturing beautiful moments in life, documenting daily warmth and emotions through my lens.",
+  "url": "https://afilmory.innei.in/",
+  "accentColor": "#007bff",
+  "author": {
+    "name": "lennox",
+    "url": "https://innei.in/",
+    "avatar": "https://avatars.githubusercontent.com/u/113570814?s=96&v=4"
+  },
+  "social": {
+    "github": "",
+    "twitter": ""
+  },
+  "feed": {
+    "folo": {
+      "challenge": {
+        "feedId": "",
+        "userId": ""
+      }
+    }
+  },
+  "map": [
+    "maplibre"
+  ],
+  "mapStyle": "builtin",
+  "mapProjection": "mercator",
+  "beian": {
+    "icp": {
+      "enabled": false,
+      "number": "XICP备xxxxxxxx号",
+      "link": "https://beian.miit.gov.cn/"
+    },
+    "police": {
+      "enabled": false,
+      "number": "X公网安备xxxxxxxxxxxxxx号",
+      "code": "xxxxxxxxxxxxxx",
+      "icon": "https://example.com/beian.png"
+    }
+  }
+}

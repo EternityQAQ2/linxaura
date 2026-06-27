@@ -260,3 +260,13 @@ body:not(:has(.vp-home-hero)) {
     border-radius: 12px !important;
   }
 }
+
+/* ============================================================
+ * Gallery — full-screen Afilmory iframe
+ * ============================================================ */
+
+/* Remove doc page padding so iframe fills the content area */
+body:has(.gallery-wrapper) .vp-doc {
+  padding: 0 !important;
+  max-width: none !important;
+}

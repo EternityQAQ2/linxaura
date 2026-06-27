@@ -1,0 +1,38 @@
+{
+  "name": "@afilmory/webgl-viewer",
+  "type": "module",
+  "version": "0.2.0",
+  "packageManager": "pnpm@11.1.2",
+  "description": "Afilmory WebGL Viewer",
+  "author": "Innei",
+  "license": "MIT",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "main": "./src/index.ts",
+  "scripts": {
+    "build": "vite build",
+    "type-check": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "react": ">=19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "catalog:",
+    "nbump": "2.1.8",
+    "react": "^19.2.7",
+    "tsdown": "0.22.2",
+    "unplugin-dts": "1.0.2",
+    "vite": "8.0.16"
+  },
+  "publishConfig": {
+    "access": "public",
+    "main": "./dist/index.js",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      }
+    }
+  }
+}

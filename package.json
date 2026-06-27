@@ -6,15 +6,24 @@
   "author": "EternityQAQ2 <Eternity_QAQ@outlook.com>",
   "license": "MIT",
   "scripts": {
-    "docs:build": "vuepress build docs --clean-cache --clean-temp",
     "docs:dev": "vuepress dev docs",
     "docs:dev-clean": "vuepress dev docs --clean-cache --clean-temp",
+    "docs:build": "vuepress build docs --clean-cache --clean-temp",
     "docs:preview": "http-server docs/.vuepress/dist",
     "gallery:gen": "node scripts/generate-gallery.mjs",
-    "vp-update": "npx vp-update"
+    "vp-update": "npx vp-update",
+
+    "dev:gallery": "cd afilmory && DEV_NEXT_JS=true pnpm --filter web dev",
+    "dev": "concurrently -n blog,gallery -c cyan,green \"npm run docs:dev\" \"npm run dev:gallery\"",
+
+    "build:gallery": "cd afilmory/apps/web && pnpm exec vite build --base /gallery-app/",
+    "copy:gallery": "rm -rf docs/.vuepress/public/gallery-app && cp -r afilmory/apps/web/dist docs/.vuepress/public/gallery-app",
+    "prebuild": "npm run build:gallery && npm run copy:gallery",
+    "build": "npm run prebuild && npm run docs:build"
   },
   "devDependencies": {
     "@vuepress/bundler-vite": "2.0.0-rc.30",
+    "concurrently": "^9.1.0",
     "exifr": "^7.1.3",
     "http-server": "^14.1.1",
     "typescript": "^6.0.3",

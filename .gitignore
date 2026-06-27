@@ -3,6 +3,12 @@
 docs/.vuepress/.cache
 docs/.vuepress/.temp
 docs/.vuepress/dist
+docs/.vuepress/public/gallery-app
 
 .DS_Store
 *.log
+
+# Afilmory build artifacts
+afilmory/node_modules
+afilmory/apps/web/dist
+afilmory/apps/web/src/data/photos-manifest.json
