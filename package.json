@@ -16,7 +16,7 @@
     "dev:gallery": "cd afilmory && DEV_NEXT_JS=true pnpm --filter web dev",
     "dev": "concurrently -n blog,gallery -c cyan,green \"npm run docs:dev\" \"npm run dev:gallery\"",
 
-    "build:gallery": "cd afilmory/apps/web && pnpm exec vite build --base /gallery-app/",
+    "build:gallery": "cd afilmory/apps/web && pnpm exec vite build --base /gallery-app/ && node ../../../scripts/copy-zeroperl-wasm.mjs",
     "copy:gallery": "rm -rf docs/.vuepress/public/gallery-app && cp -r afilmory/apps/web/dist docs/.vuepress/public/gallery-app",
     "prebuild": "npm run build:gallery && npm run copy:gallery",
     "build": "npm run prebuild && npm run docs:build"

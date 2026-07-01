@@ -12,9 +12,25 @@
 import { viteBundler } from '@vuepress/bundler-vite'
 import { defineUserConfig } from 'vuepress'
 import { plumeTheme } from 'vuepress-theme-plume'
+import { getDirname, path } from 'vuepress/utils'
+
+const __dirname = getDirname(import.meta.url)
 
 export default defineUserConfig({
   base: '/',
+
+  /**
+   * 覆盖 Plume 主题组件
+   * Override Plume theme components
+   */
+  plugins: [
+    {
+      name: 'override-vp-social-links',
+      alias: {
+        '@theme/VPSocialLinks.vue': path.resolve(__dirname, './theme/components/VPSocialLinks.vue'),
+      },
+    },
+  ],
   lang: 'zh-CN',
   locales: {
     '/': {

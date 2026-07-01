@@ -4,17 +4,30 @@ import { jotaiStore } from './jotai'
 
 class ExifToolManagerStatic {
   private isLoaded = false
+  private loadPromise: Promise<void> | null = null
 
   private exifTool: typeof import('@uswriting/exiftool') | null = null
 
   async load() {
     if (this.isLoaded) return
-    const exiftool = await import('@uswriting/exiftool')
-    console.info('ExifTool loaded...')
-    this.exifTool = exiftool
-    this.isLoaded = true
+    // Return existing in-flight promise to avoid concurrent loads
+    if (this.loadPromise) return this.loadPromise
 
-    jotaiStore.set(isExiftoolLoadedAtom, true)
+    this.loadPromise = (async () => {
+      try {
+        const exiftool = await import('@uswriting/exiftool')
+        console.info('ExifTool loaded...')
+        this.exifTool = exiftool
+        this.isLoaded = true
+        jotaiStore.set(isExiftoolLoadedAtom, true)
+      } catch (error) {
+        console.error('Failed to load ExifTool WASM module:', error)
+        this.loadPromise = null // Allow retry on next call
+        throw error
+      }
+    })()
+
+    return this.loadPromise
   }
 
   constructor() {

@@ -35,12 +35,7 @@
   --border: 0 0% 22.1%;
 }
 
-/* Transparent background when embedded in VuePress */
-[data-embed] {
-  --color-base-100: transparent;
-  --color-background: transparent;
-}
-
+/* Embedded mode: remove extra bottom padding */
 [data-embed] .pb-20 {
   padding-bottom: 0 !important;
 }

@@ -2,7 +2,8 @@
   "name": "linxaura Afilmory",
   "title": "linxaura Afilmory",
   "description": "Capturing beautiful moments in life, documenting daily warmth and emotions through my lens.",
-  "url": "https://afilmory.innei.in/",
+  "url": "",
+  "_note_url": "本地部署不需要 URL，留空即可。OG/sitemap 插件在 url 为空时静默跳过。",
   "accentColor": "#007bff",
   "author": {
     "name": "lennox",

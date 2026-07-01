@@ -10,6 +10,9 @@
       if (new URLSearchParams(window.location.search).has('embed')) {
         document.documentElement.setAttribute('data-embed', '')
         document.documentElement.removeAttribute('data-theme')
+        // Make splash screen transparent so parent wallpaper shows through
+        var splash = document.getElementById('splash-screen')
+        if (splash) splash.style.background = 'transparent'
       }
     </script>
 

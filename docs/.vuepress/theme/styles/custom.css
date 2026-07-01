@@ -38,6 +38,7 @@ body:not(:has(.vp-home-hero)) {
   --vp-c-bg-soft: rgba(32, 33, 39, 0.86);
 }
 
+
 /* ============================================================
  * Navbar
  * ============================================================ */
@@ -265,8 +266,31 @@ body:not(:has(.vp-home-hero)) {
  * Gallery — full-screen Afilmory iframe
  * ============================================================ */
 
+/* Make ALL VuePress backgrounds transparent so the gallery-wrapper's
+   wallpaper shows through; the iframe content is also transparent in
+   embed mode, so the wallpaper is visible at every layer.
+   Must override both light and dark mode variants. */
+body:has(.gallery-wrapper),
+[data-theme="dark"] body:has(.gallery-wrapper) {
+  --vp-c-bg: transparent;
+  --vp-c-bg-alt: transparent;
+  --vp-c-bg-elv: transparent;
+  --vp-c-bg-soft: transparent;
+  background-color: transparent !important;
+}
+
+/* Don't show the faint body::before wallpaper — the gallery-wrapper
+   already has its own full-opacity wallpaper */
+body:has(.gallery-wrapper)::before,
+[data-theme="dark"] body:has(.gallery-wrapper)::before {
+  opacity: 0 !important;
+}
+
 /* Remove doc page padding so iframe fills the content area */
-body:has(.gallery-wrapper) .vp-doc {
+body:has(.gallery-wrapper) .vp-doc,
+[data-theme="dark"] body:has(.gallery-wrapper) .vp-doc {
   padding: 0 !important;
   max-width: none !important;
+  background: transparent !important;
+  background-color: transparent !important;
 }

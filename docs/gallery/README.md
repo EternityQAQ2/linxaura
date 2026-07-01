@@ -11,6 +11,7 @@ readingTime: false
 editLink: false
 lastUpdated: false
 contributors: false
+footer: false
 ---
 
 <Gallery />

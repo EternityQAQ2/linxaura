@@ -8,8 +8,18 @@ body {
   @apply grow h-0 shrink-0 overflow-auto relative;
 }
 
-[data-embed] body {
-  background-color: transparent;
+html[data-embed],
+html[data-embed] body {
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.88)),
+    url('/desktop.png') center / cover no-repeat fixed !important;
+}
+
+/* Non-embedded mode: white semi-transparent overlay + wallpaper (match blog page style) */
+html:not([data-embed]) body {
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.88)),
+    url('/desktop.png') center / cover no-repeat fixed;
 }
 
 @media screen and (min-width: 1024px) {

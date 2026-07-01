@@ -292,6 +292,23 @@ export const RawExifViewer: React.FC<RawExifViewerProps> = ({ currentPhoto }) =>
     setIsLoading(false)
   }, [currentPhoto.id])
 
+  /** Fallback: convert the pre-parsed PickedExif from the manifest to raw text lines */
+  const exifToRawText = (exif: Record<string, unknown>, prefix = ''): string => {
+    const lines: string[] = []
+    for (const [key, value] of Object.entries(exif)) {
+      const prefixedKey = prefix ? `${prefix}.${key}` : key
+      if (value === null || value === undefined) {
+        continue
+      }
+      if (typeof value === 'object' && !Array.isArray(value)) {
+        lines.push(exifToRawText(value as Record<string, unknown>, prefixedKey))
+      } else {
+        lines.push(`${prefixedKey}: ${String(value)}`)
+      }
+    }
+    return lines.join('\n')
+  }
+
   const handleOpenModal = async () => {
     if (rawExifData) {
       setIsOpen(true)
@@ -308,9 +325,26 @@ export const RawExifViewer: React.FC<RawExifViewerProps> = ({ currentPhoto }) =>
       setIsOpen(true)
     } catch (error) {
       console.error('Failed to parse EXIF data:', error)
+
+      // Fallback: use pre-parsed exif data from manifest
+      if (currentPhoto.exif) {
+        const fallbackData = exifToRawText(currentPhoto.exif as unknown as Record<string, unknown>)
+        if (fallbackData) {
+          setRawExifData(fallbackData)
+          setIsOpen(true)
+          toast.info(
+            t('exif.raw.parse.fallback', {
+              defaultValue: 'Using pre-parsed EXIF data (browser parser unavailable)',
+            }),
+          )
+          return
+        }
+      }
+
+      const message = error instanceof Error ? error.message : 'Unknown error'
       toast.error(
         t('exif.raw.parse.error', {
-          defaultValue: 'Failed to parse EXIF data',
+          defaultValue: `Failed to parse EXIF data: ${message}`,
         }),
       )
     } finally {

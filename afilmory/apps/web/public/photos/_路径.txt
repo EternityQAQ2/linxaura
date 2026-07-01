@@ -1,0 +1,6 @@
+以下是路径关系。
+起点相册路径：/run/media/lennox/Study/微信公号号/修图/Output/
+中间路径：/home/lennox/linxaura-docs/linxaura/linxaura/afilmory/apps/web/public/photos/
+github路径：github链接。
+服务器路径：更是比较远。
+
